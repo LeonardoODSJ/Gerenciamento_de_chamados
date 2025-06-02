@@ -1,6 +1,6 @@
 🎟️ Gerenciamento de Chamados de Serviço
    
-Bem-vindo ao Gerenciamento de Chamados de Serviço, uma aplicação web moderna e responsiva para criar e listar chamados corporativos, com integração de análise de sentimento via um endpoint personalizado. Este projeto utiliza tecnologias de ponta para oferecer uma interface intuitiva e um back-end robusto, garantindo eficiência e escalabilidade.
+Bem-vindo ao Gerenciamento de Chamados de Serviço, uma aplicação para Avaliação da CNI web responsiva para criar e listar chamados corporativos, com integração de análise de sentimento via um endpoint personalizado. Este projeto utiliza tecnologias de ponta para oferecer uma interface intuitiva e um back-end robusto, garantindo eficiência e escalabilidade.
 📋 Visão Geral
 Esta aplicação permite:
 

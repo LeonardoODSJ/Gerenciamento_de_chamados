@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react'; // Importando useSession do next-auth
+import { useSession } from 'next-auth/react';
 
 interface Ticket {
   id: string;
@@ -14,18 +14,19 @@ interface Ticket {
 
 export default function TicketManager() {
   const router = useRouter();
-  const { data: session, status } = useSession(); // Obtendo status e session do next-auth
+  const { data: session, status } = useSession();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [token, setToken] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Buscar o token ao carregar a página
+  // Fetch token on page load
   useEffect(() => {
     const fetchToken = async (retries = 3) => {
       try {
-        console.log('Buscando token, página iniciada.');
+        console.log('Fetching token, page started.');
         const response = await fetch('/api/auth/token', {
           method: 'POST',
           headers: {
@@ -35,20 +36,20 @@ export default function TicketManager() {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(`Erro HTTP: ${response.status}, ${JSON.stringify(errorData.errors)}`);
+          throw new Error(`HTTP Error: ${response.status}, ${JSON.stringify(errorData.errors)}`);
         }
         const data = await response.json();
         if (data.status === 'SUCCESS' && data.token) {
           setToken(data.token);
         } else {
-          throw new Error('Token não obtido');
+          throw new Error('Token not obtained');
         }
       } catch (error) {
-        console.error('Erro ao buscar token:', error);
+        console.error('Error fetching token:', error);
         if (retries > 0) {
           setTimeout(() => fetchToken(retries - 1), 1000);
         } else {
-          console.error('Falha ao carregar token após tentativas');
+          console.error('Failed to load token after retries');
         }
       }
     };
@@ -58,41 +59,41 @@ export default function TicketManager() {
     }
   }, [status, token]);
 
-  // Redirecionar se não autenticado
+  // Redirect if unauthenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/');
     }
   }, [status, router]);
 
-  // Carregar tickets na montagem do componente
+  // Load tickets on component mount
   useEffect(() => {
     const fetchTickets = async () => {
-      if (!token) return; // Evitar chamada se o token não estiver disponível
+      if (!token) return;
       try {
         const response = await fetch('/api/tickets', {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // Incluindo o token no cabeçalho
+            Authorization: `Bearer ${token}`,
           },
         });
         if (!response.ok) {
-          throw new Error('Erro ao carregar tickets');
+          throw new Error('Error loading tickets');
         }
         const data = await response.json();
         setTickets(data);
       } catch (error) {
-        console.error('Erro ao carregar tickets:', error);
+        console.error('Error loading tickets:', error);
       }
     };
 
     fetchTickets();
-  }, [token]); // Dependência no token para garantir que ele esteja disponível
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) {
-      console.error('Token não disponível para criar o chamado');
+      console.error('Token not available for creating ticket');
       return;
     }
     try {
@@ -100,7 +101,7 @@ export default function TicketManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Incluindo o token no cabeçalho
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ title, description, category }),
       });
@@ -109,87 +110,142 @@ export default function TicketManager() {
         setTitle('');
         setDescription('');
         setCategory('');
-        // Atualizar a lista de tickets
+        setIsModalOpen(false);
         const newTickets = await fetch('/api/tickets', {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // Incluindo o token no cabeçalho
+            Authorization: `Bearer ${token}`,
           },
         }).then((res) => res.json());
         setTickets(newTickets);
       } else {
         const errorData = await response.json();
-        console.error('Erro ao criar chamado:', errorData);
+        console.error('Error creating ticket:', errorData);
       }
     } catch (error) {
-      console.error('Erro ao criar chamado:', error);
+      console.error('Error creating ticket:', error);
     }
   };
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTitle('');
+    setDescription('');
+    setCategory('');
+  };
+
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="space-y-8 w-full max-w-4xl px-4">
+          <h2 className="text-xl font-semibold mb-2">Lista de Chamados</h2>
+          <div className="w-full overflow-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead className="border-b">
+                <tr>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">ID</th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">Título</th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">Descrição</th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">Categoria</th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">Sentimento</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={5} className="p-4 text-center">Carregando chamados...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Formulário de Criação de Chamado */}
+    <div className="space-y-8 w-full max-w-4xl mx-auto px-4 py-8">
+      {/* Button to open modal */}
       <div>
-        <h2 className="text-xl font-semibold mb-2">Criar Novo Chamado</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-foreground">
-              Título
-            </label>
-            <input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-foreground">
-              Descrição
-            </label>
-            <input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-foreground">
-              Categoria
-            </label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="" disabled>
-                Selecione uma categoria
-              </option>
-              <option value="TI">TI</option>
-              <option value="RH">RH</option>
-              <option value="Manutenção">Manutenção</option>
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={!token} // Desabilitar o botão se o token não estiver disponível
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-          >
-            Criar Chamado
-          </button>
-        </form>
+        <button
+          onClick={openModal}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          Criar Novo Chamado
+        </button>
       </div>
 
-      {/* Tabela de Chamados */}
+      {/* Modal for creating ticket */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Criar Novo Chamado</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-foreground">
+                  Título
+                </label>
+                <input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-foreground">
+                  Descrição
+                </label>
+                <input
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-foreground">
+                  Categoria
+                </label>
+                <select
+                  id="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="" disabled>
+                    Selecione uma categoria
+                  </option>
+                  <option value="TI">TI</option>
+                  <option value="RH">RH</option>
+                  <option value="Manutenção">Manutenção</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="inline-flex items-center justify-center rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/90 focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!token}
+                  className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                >
+                  Criar Chamado
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Ticket list */}
       <div>
         <h2 className="text-xl font-semibold mb-2">Lista de Chamados</h2>
         <div className="w-full overflow-auto">
