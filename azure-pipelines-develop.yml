@@ -1,0 +1,81 @@
+trigger:
+  - main
+
+pool:
+  name: Azure Pipelines
+
+steps:
+  - task: NodeTool@0
+    displayName: 'Use Node 20.x'
+    inputs:
+      versionSpec: 20.x
+
+  - task: Npm@1
+    displayName: 'Install dependencies'
+    inputs:
+      command: 'install'
+      verbose: false
+
+  - task: Npm@1
+    displayName: 'Build application'
+    inputs:
+      command: 'custom'
+      customCommand: 'run build'
+      verbose: true
+
+  # - task: Npm@1
+  #   displayName: 'Run tests with coverage'
+  #   inputs:
+  #     command: 'custom'
+  #     customCommand: 'test:cov'
+  #     verbose: false
+
+  # - task: SonarQubePrepare@5
+  #   displayName: 'Prepare SonarQube analysis'
+  #   inputs:
+  #     SonarQube: 'SonarQube Azure DevOps'
+  #     scannerMode: 'CLI'
+  #     configMode: 'manual'
+  #     cliProjectKey: 'next'
+  #     cliProjectName: 'Next.js Project'
+  #     cliSources: '.'
+  #     extraProperties: |
+  #       sonar.exclusions=**/*.spec.ts,**/*.test.ts,**/*.spec.tsx,**/*.test.tsx
+  #       sonar.sourceEncoding=UTF-8
+  #       sonar.javascript.lcov.reportPaths=./coverage/lcov.info
+
+  # - task: SonarQubeAnalyze@5
+  #   displayName: 'Run SonarQube analysis'
+
+  # - task: SonarQubePublish@5
+  #   displayName: 'Publish SonarQube results'
+  #   inputs:
+  #     pollingTimeoutSec: '300'
+
+  - task: CopyFiles@2
+    displayName: 'Copy build output to artifact staging directory'
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/.next'
+      Contents: '**'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/.next'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish build artifacts'
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'next-app'
+      publishLocation: 'Container'
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: 'echo NEXT_PUBLIC_INTERNAL_APP_KEY=$(APP_KEY) >> .env && echo NEXT_PUBLIC_IA_URL=$(APP_IA_URL) >> .env'
+
+  - task: Docker@2
+    displayName: 'Build and push Docker image'
+    inputs:
+      containerRegistry: 'cniregistry'
+      repository: '$(Build.Repository.Name)'
+      command: 'buildAndPush'
+      arguments: '--build-arg NEXT_PUBLIC_INTERNAL_APP_KEY=$(APP_KEY)'
+      Dockerfile: '**/dockerfile'
