@@ -23,13 +23,23 @@ export async function GET(req: Request) {
       return NextResponse.json({ error }, { status });
     }
 
-    const { resources: tickets } = await container.items.readAll().fetchAll();
+    // Buscar apenas onde isDelete = false e o campo existe
+    const query = {
+      query: "SELECT * FROM c WHERE IS_DEFINED(c.isDelete) AND c.isDelete = @isDelete",
+      parameters: [
+        { name: "@isDelete", value: false }
+      ]
+    };
+
+    const { resources: tickets } = await container.items.query(query).fetchAll();
+
     return NextResponse.json(tickets);
   } catch (error) {
     console.error('Erro ao buscar tickets:', error);
     return NextResponse.json({ error: 'Falha ao buscar tickets' }, { status: 500 });
   }
 }
+
 
 export async function POST(req: Request) {
   try {
@@ -63,6 +73,7 @@ export async function POST(req: Request) {
       category,
       sentiment,
       createdAt: new Date().toISOString(),
+      isDelete: false,
     };
 
     const { resource } = await container.items.create(ticket);
@@ -70,5 +81,47 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Erro ao criar ticket:', error);
     return NextResponse.json({ error: 'Falha ao criar ticket' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { valid, error, status } = await validateToken(request);
+    if (!valid) {
+      return NextResponse.json({ error }, { status });
+    }
+
+    // Tentar obter o id do corpo da requisição
+    let id;
+    try {
+      const body = await request.json();
+      id = body.id;
+    } catch (e) {
+      // Se o corpo estiver vazio ou inválido, tentar obter o id dos query parameters
+      const { searchParams } = new URL(request.url);
+      id = searchParams.get('id');
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID do ticket ausente' }, { status: 400 });
+    }
+
+    // Buscar o item usando o id como partition key
+    const { resource: ticket } = await container.item(id, id).read();
+    if (!ticket) {
+      return NextResponse.json({ error: 'Ticket não encontrado' }, { status: 404 });
+    }
+
+    // Atualizar isDelete para true
+    ticket.isDelete = true;
+    const { resource } = await container.item(id, id).replace(ticket);
+
+    return NextResponse.json({ message: 'Ticket marcado como deletado' }, { status: 200 });
+  } catch (error: any) {
+    console.error('Erro ao marcar ticket como deletado:', {
+      message: error.message,
+      stack: error.stack,
+    });
+    return NextResponse.json({ error: 'Falha ao marcar ticket como deletado', details: error.message }, { status: 500 });
   }
 }

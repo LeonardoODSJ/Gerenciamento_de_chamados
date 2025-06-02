@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Trash2 } from 'lucide-react';
 
 interface Ticket {
   id: string;
@@ -126,6 +127,43 @@ export default function TicketManager() {
       console.error('Error creating ticket:', error);
     }
   };
+
+const handleDelete = async (id: string) => {
+  if (!confirm('Tem certeza que deseja excluir este chamado?')) {
+    return;
+  }
+
+  if (!token) {
+    console.error('Token not available for deleting ticket');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/tickets?id=${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      // Update ticket list
+      const newTickets = await fetch('/api/tickets', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((res) => res.json());
+      setTickets(newTickets);
+    } else {
+      const errorData = await response.json();
+      console.error('Error deleting ticket:', errorData);
+    }
+  } catch (error) {
+    console.error('Error deleting ticket:', error);
+  }
+};
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
@@ -257,6 +295,7 @@ export default function TicketManager() {
                 <th className="h-12 px-4 text-left font-medium text-muted-foreground">Descrição</th>
                 <th className="h-12 px-4 text-left font-medium text-muted-foreground">Categoria</th>
                 <th className="h-12 px-4 text-left font-medium text-muted-foreground">Sentimento</th>
+                 <th className="h-12 px-4 text-left font-medium text-muted-foreground">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -267,6 +306,15 @@ export default function TicketManager() {
                   <td className="p-4">{ticket.description}</td>
                   <td className="p-4">{ticket.category}</td>
                   <td className="p-4">{ticket.sentiment}</td>
+                                    <td className="p-4">
+                    <button
+                      onClick={() => handleDelete(ticket.id)}
+                      className="text-red-600 hover:text-red-800"
+                      aria-label="Excluir chamado"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
