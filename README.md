@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🎟️ Gerenciamento de Chamados de Serviço
+   
+Bem-vindo ao Gerenciamento de Chamados de Serviço, uma aplicação web moderna e responsiva para criar e listar chamados corporativos, com integração de análise de sentimento via um endpoint personalizado. Este projeto utiliza tecnologias de ponta para oferecer uma interface intuitiva e um back-end robusto, garantindo eficiência e escalabilidade.
+📋 Visão Geral
+Esta aplicação permite:
 
-## Getting Started
+Criar chamados: Usuários podem registrar novos chamados com título, descrição e categoria.
+Listar chamados: Exibe todos os chamados em uma tabela com ID, título, descrição, categoria e sentimento.
+Análise de sentimento: Integração com um endpoint personalizado (https://servicos.com.br/api/chat) para analisar o sentimento das descrições.
+Persistência de dados: Armazena os chamados no Azure Cosmos DB, garantindo alta disponibilidade e escalabilidade.
 
-First, run the development server:
+A interface é responsiva, funcionando perfeitamente em dispositivos desktop e móveis, e usa Tailwind CSS para uma estilização elegante e acessível.
+🛠️ Tecnologias Utilizadas
 
-```bash
+Next.js 15.3.2 ⚛️Framework React para construção de aplicações web com renderização híbrida (SSR e SSG). Utilizamos a pasta app/ para roteamento e APIs RESTful.
+
+TypeScript 5 🟦Adiciona tipagem estática ao JavaScript, garantindo maior robustez e manutenibilidade do código.
+
+Tailwind CSS 3.3.0 🎨Framework CSS utilitário para estilização rápida e responsiva, com suporte a temas personalizados e design acessível.
+
+Azure Cosmos DB 4.0.0 ☁️Banco de dados NoSQL distribuído para armazenamento escalável dos chamados, integrado via SDK @azure/cosmos.
+
+Endpoint de Análise de Sentimento 🌐Integração com o endpoint personalizado para análise de sentimento (positivo, negativo ou neutro) das descrições dos chamados.
+
+UUID 🔢Biblioteca para geração de identificadores únicos para os chamados no Cosmos DB.
+
+
+🚀 Como Configurar e Executar
+Pré-requisitos
+
+Node.js (v18 ou superior)
+Conta Azure com Cosmos DB configurado
+
+Passos
+
+Clone o repositório:
+git clone <URL_DO_REPOSITORIO>
+cd my-ticket-app
+
+
+Instale as dependências:
+npm install
+
+
+Configure as variáveis de ambiente:Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
+
+#segurança
+NODE_ENV=development
+NEXT_PUBLIC_INTERNAL_APP_KEY=
+INTERNAL_APP_KEY=
+AZURE_AD_CLIENT_ID=
+AZURE_AD_CLIENT_SECRET=
+AZURE_AD_TENANT_ID=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_IA_URL=
+AUTH_URL=
+COSMOS_ENDPOINT=
+COSMOS_KEY=
+COSMOS_DATABASE=
+COSMOS_CONTAINER="
+SENTIMENT_API_URL="
+
+
+Configure o Azure Cosmos DB:
+
+Crie um banco de dados TicketsDB e um contêiner Tickets com uma chave de partição (ex.: /category).
+Atualize o .env com as credenciais do Cosmos DB.
+
+
+Inicie o servidor de desenvolvimento:
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Acesse a aplicação:Abra o navegador em http://localhost:3000.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+🔗 Endpoints da API
 
-To learn more about Next.js, take a look at the following resources:
+GET /api/ticketsRetorna a lista de todos os chamados armazenados no Cosmos DB.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+POST /api/ticketsCria um novo chamado. Exemplo de corpo da requisição:
+{
+  "title": "Problema com impressora",
+  "description": "A impressora não está funcionando corretamente.",
+  "category": "TI"
+}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+Validações: title, description e category são obrigatórios.
+Integra com o endpoint de análise de sentimento para determinar o sentimento da descrição.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🎨 Funcionalidades da Interface
+
+Formulário de Criação: Permite criar chamados com título, descrição e categoria (TI, RH, Manutenção).
+Tabela de Chamados: Exibe todos os chamados com ID, título, descrição, categoria e sentimento, estilizada para ser responsiva e acessível.
+Responsividade: Layout ajustado para desktop e mobile usando Tailwind CSS.
+Atualização em Tempo Real: A tabela é atualizada automaticamente após a criação de um novo chamado.
+
+📝 Notas Adicionais
+
+Acessibilidade: A interface usa classes Tailwind para garantir contraste e navegação acessível.
+Escalabilidade: O uso do Cosmos DB permite lidar com grandes volumes de dados.
+Manutenibilidade: TypeScript e a estrutura modular do Next.js facilitam a manutenção do código.
+Segurança: Validações no front-end e back-end garantem que os dados sejam consistentes.
+
+🤝 Contribuições
+Contribuições são bem-vindas! Para sugerir melhorias:
+
+Faça um fork do repositório.
+Crie uma branch (git checkout -b feature/nova-funcionalidade).
+Commit suas alterações (git commit -m 'Adiciona nova funcionalidade').
+Envie um pull request.
+
+
+🌟 Desenvolvido com 💻 por LeonardoODSJ
