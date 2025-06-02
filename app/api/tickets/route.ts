@@ -3,7 +3,6 @@ import { container } from '@/app/lib/cosmos';
 import { analyzeSentiment } from '@/app/lib/sentimentAnalysis';
 import { v4 as uuidv4 } from 'uuid';
 
-// Middleware para validar o token
 async function validateToken(req: Request) {
   const authHeader = req.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -11,7 +10,6 @@ async function validateToken(req: Request) {
   }
 
   const token = authHeader.split(' ')[1];
-  // Se o token está presente, considera como válido sem verificar com JWT
   return { valid: true, decoded: { token } };
 }
 

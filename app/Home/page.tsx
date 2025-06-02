@@ -43,7 +43,7 @@ export default function HomePage() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white flex flex-col items-center justify-start p-6 sm:p-10">
+    <div className="min-h-screen text-white flex flex-col items-center justify-start p-6 sm:p-10">
       {/* Header Section */}
       <div className="w-full max-w-5xl text-left mb-12">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-blue-400 mb-4 animate-fade-in">
@@ -61,30 +61,36 @@ export default function HomePage() {
       </div>
 
       {/* Cards Section */}
-      <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="group bg-neutral-800 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-          <h2 className="text-2xl font-semibold text-blue-300 mb-4">Criar Chamado</h2>
-          <p className="text-gray-400 mb-6">Inicie um novo chamado com descrições detalhadas e análise de sentimento automática.</p>
-          <button
-            onClick={() => router.push('/chamados')}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-            aria-label="Acessar página para criar novo chamado"
-          >
-            Criar Novo Chamado
-          </button>
-        </div>
-        <div className="group bg-neutral-800 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-          <h2 className="text-2xl font-semibold text-blue-300 mb-4">Ver Chamados</h2>
-          <p className="text-gray-400 mb-6">Acompanhe o status e os detalhes de todos os chamados abertos.</p>
-          <button
-            onClick={() => router.push('/chamados')}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-            aria-label="Acessar página de listagem de chamados"
-          >
-            Visualizar Chamados
-          </button>
-        </div>
-      </div>
+<div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="group bg-neutral-800 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl min-h-[200px] flex flex-col justify-between">
+    <div>
+      <h2 className="text-2xl font-semibold text-blue-300 mb-4">Criar Chamado</h2>
+      <p className="text-gray-400 mb-6">Inicie um novo chamado com descrições detalhadas e análise de sentimento automática.</p>
+    </div>
+    <button
+      onClick={() => router.push('/chamados')}
+      className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+      aria-label="Acessar página para criar novo chamado"
+    >
+      Criar Novo Chamado
+    </button>
+  </div>
+
+  <div className="group bg-neutral-800 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl min-h-[200px] flex flex-col justify-between">
+    <div>
+      <h2 className="text-2xl font-semibold text-blue-300 mb-4">Ver Chamados</h2>
+      <p className="text-gray-400 mb-6">Acompanhe o status e os detalhes de todos os chamados abertos.</p>
+    </div>
+    <button
+      onClick={() => router.push('/chamados')}
+      className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+      aria-label="Acessar página de listagem de chamados"
+    >
+      Visualizar Chamados
+    </button>
+  </div>
+</div>
+
     </div>
   );
 }
